@@ -1,195 +1,131 @@
-# SLICE-Net: Spatial-Frequency Adaptive Selection and Inter-domain Correlation Network for Low-Light Image Enhancement
+# SLICE-Net
 
-This repository contains a complete PyTorch implementation of **SLICE-Net** for low-light image enhancement.
+Official PyTorch implementation of **SLICE-Net: Spatial-Frequency Adaptive Selection and Inter-domain Correlation Network for Low-Light Image Enhancement**.
 
-SLICE-Net is designed around five core components:
-
-1. **Gradient Interaction Block (GIB)** for structure-sensitive gradient guidance.
-2. **Gradient-Embedded Spatial Domain Pipeline (GESDP)** using cascaded **Parallel Multi-Kernel Spatial Attention Blocks (PMKSAB)**.
-3. **Learnable Frequency Representation Pipeline (LFRP)** using patch-wise 2D-DCT, **Learnable Frequency Selection Module (LSFM)**, **Frequency Adaptive Attention Refinement (FAAR)**, and inverse 2D-DCT.
-4. **Inter-Domain Correlation Attention (IDCA)** for explicit spatial-frequency correlation modeling.
-5. **Visual Enhancement Block (VEB)** for residual restoration.
-
-<p align="center">
-  <img src="assets/slicenet_architecture.png" width="900">
-</p>
+> **Status:** Submitted to **IEEE Sensors Letters**. Citation will be added once available.
 
 ---
 
 ## Repository structure
 
-```text
-SLICE-Net-GitHub/
-├── assets/
-│   └── slicenet_architecture.png
+```
+slice-net/
 ├── configs/
-│   └── slicenet_lol.yml
-├── datasets/
-│   └── paired_image_dataset.py
+│   └── default.yaml          # training / model hyperparameters
+├── data/
+│   ├── __init__.py
+│   └── dataset.py            # PairedLLIE, UnpairedLLIE
 ├── models/
-│   ├── blocks.py
-│   ├── slicenet.py
-│   └── __init__.py
-├── scripts/
-│   └── prepare_lol_dataset.md
-├── utils/
-│   ├── image.py
-│   ├── io.py
-│   ├── losses.py
-│   ├── metrics.py
-│   └── seed.py
-├── train.py
-├── test.py
-├── inference.py
-├── profile_model.py
-├── requirements.txt
-└── README.md
+│   ├── __init__.py
+│   ├── slicenet.py           # SLICENet, SLICENetConfig, build_model
+│   └── modules/
+│       ├── dct.py            # block-wise 2D-DCT / IDCT
+│       ├── gib.py            # Gradient Interaction Block
+│       ├── pmksab.py         # Parallel Multi-Kernel Spatial Attention Block
+│       ├── lsfm.py           # Learnable Frequency Selection Module
+│       ├── faar.py           # Frequency-Adaptive Attention Refinement
+│       ├── idca.py           # Inter-Domain Correlation Attention
+│       └── veb.py            # Visual Enhancement Block
+└── utils/
+    ├── __init__.py
+    ├── losses.py             # Charbonnier, Charbonnier + SSIM
+    └── metrics.py            # PSNR, SSIM, NIQE
 ```
 
 ---
 
-## Installation
+## Requirements
+
+- Python ≥ 3.9
+- PyTorch ≥ 2.0
+- torchvision, numpy, Pillow, PyYAML
+- `pyiqa` (optional, for NIQE)
 
 ```bash
-git clone https://github.com/your-user/SLICE-Net.git
-cd SLICE-Net
-conda create -n slicenet python=3.10 -y
-conda activate slicenet
-pip install -r requirements.txt
-```
-
-Install the PyTorch build that matches your CUDA version from the official PyTorch installation page.
-
----
-
-## Dataset preparation
-
-The dataloader expects paired low-light and normal-light images with matching filenames.
-
-Example for LOL-v1:
-
-```text
-data/LOL-v1/
-├── our485/
-│   ├── low/
-│   └── high/
-└── eval15/
-    ├── low/
-    └── high/
-```
-
-Update the paths in:
-
-```bash
-configs/slicenet_lol.yml
+pip install torch torchvision numpy Pillow PyYAML pyiqa
 ```
 
 ---
 
-## Training
+## Quick start
 
-```bash
-python train.py --config configs/slicenet_lol.yml
-```
+```python
+import torch
+from models import build_model, SLICENetConfig
 
-Default training settings follow the manuscript-style setup:
+cfg = SLICENetConfig(feat_channels=40)
+net = build_model(cfg).eval()
 
-- Optimizer: AdamW
-- Learning rate: `1e-4`
-- Weight decay: `1e-7`
-- Betas: `(0.9, 0.999)`
-- Loss: Charbonnier loss
-- Epochs: `600`
-- Mixed precision: enabled by default
-
-The best checkpoint is saved at:
-
-```text
-checkpoints/best.pth
-```
-
-Resume training:
-
-```bash
-python train.py --config configs/slicenet_lol.yml --resume checkpoints/epoch_0100.pth
+low = torch.randn(1, 3, 256, 256)        # low-light input in [0, 1]
+with torch.no_grad():
+    enhanced = net(low)                  # enhanced output
 ```
 
 ---
 
-## Testing
+## Dataset layout
 
-```bash
-python test.py \
-  --config configs/slicenet_lol.yml \
-  --checkpoint checkpoints/best.pth \
-  --save_images
+The `PairedLLIE` dataset expects matched low / high pairs by filename stem:
+
+```
+<dataset_root>/
+├── low/
+│   ├── 0001.png
+│   ├── 0002.png
+│   └── ...
+└── high/
+    ├── 0001.png
+    ├── 0002.png
+    └── ...
 ```
 
-Enhanced images will be saved in:
-
-```text
-results/test_outputs/
-```
-
-The testing script reports average PSNR and SSIM.
+For NIQE-only evaluation on unpaired benchmarks (DICM, LIME, MEF, NPE), use `UnpairedLLIE` with a flat folder of images.
 
 ---
 
-## Single-image or folder inference
+## Pretrained weights & results
 
-```bash
-python inference.py \
-  --input path/to/low_light_image_or_folder \
-  --checkpoint checkpoints/best.pth \
-  --output results/inference
+Pretrained checkpoints and visual results are hosted on Google Drive:
+
+| Resource | Link |
+|---|---|
+| Pretrained weights (LOL v1) | [Google Drive](<INSERT_LINK_HERE>) |
+| Pretrained weights (LOL v2) | [Google Drive](<INSERT_LINK_HERE>) |
+| Pretrained weights (MIT-Adobe 5K) | [Google Drive](<INSERT_LINK_HERE>) |
+| Visual results (paired benchmarks) | [Google Drive](<INSERT_LINK_HERE>) |
+| Visual results (unpaired benchmarks) | [Google Drive](<INSERT_LINK_HERE>) |
+
+> Replace `<INSERT_LINK_HERE>` with the corresponding shareable Google Drive URL.
+
+To load a downloaded checkpoint:
+
+```python
+import torch
+from models import build_model
+
+net = build_model()
+state = torch.load("slicenet_lolv1.pth", map_location="cpu")
+net.load_state_dict(state["model"] if "model" in state else state)
+net.eval()
 ```
-
----
-
-## Model profiling
-
-```bash
-python profile_model.py --size 256 --base_channels 32
-```
-
-This reports parameter count and FLOPs for a dummy input.
-
----
-
-## Method overview
-
-Given a low-light image, SLICE-Net extracts structure-aware spatial features through a gradient interaction branch and cascaded multi-kernel spatial attention blocks. In parallel, it processes the input through a learnable frequency pipeline based on patch-wise DCT. The low- and high-frequency components are adaptively selected and refined using LSFM and FAAR. Finally, IDCA models the correlation between spatial and frequency representations, and VEB predicts a residual degradation map for enhancement.
-
----
-
-## Important notes
-
-This repository provides a clean and reproducible implementation based on the architecture description. Exact reported benchmark numbers may vary depending on dataset split, preprocessing, crop size, seed, training duration, and hardware.
-
-For fair comparison, use the same train/test split, image resolution policy, and evaluation protocol across all methods.
 
 ---
 
 ## Citation
 
+> *To be updated upon acceptance at IEEE Sensors Letters.*
+
 ```bibtex
-@article{das2026slicenet,
-  title={SLICE-Net: Spatial-Frequency Adaptive Selection and Inter-domain Correlation Network for Low-Light Image Enhancement},
-  author={Das, Debashis and Maji, Suman Kumar},
-  journal={IEEE Sensors Applications},
-  year={2026}
+@article{slicenet2026,
+  title   = {SLICE-Net: Spatial-Frequency Adaptive Selection and Inter-domain Correlation Network for Low-Light Image Enhancement},
+  author  = {Anonymous},
+  journal = {IEEE Sensors Letters (under review)},
+  year    = {2026}
 }
 ```
 
 ---
 
-## Contact
+## License
 
-For questions, please contact:
-
-```text
-Debashis Das
-Department of Computer Science and Engineering
-Indian Institute of Technology Patna
-Email: debashis_2221cs31@iitp.ac.in
-```
+MIT
