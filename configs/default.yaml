@@ -1,0 +1,53 @@
+# SLICE-Net default training configuration.
+
+experiment:
+  name: slicenet_lolv1
+  output_dir: runs            # checkpoints + tb logs land in runs/<name>
+  seed: 1234
+
+model:
+  in_channels: 3
+  out_channels: 3
+  feat_channels: 40           # ~2.84 M parameters
+  num_stages: 4
+  block_size: 4
+  pmksab_kernels: [1, 2, 3, 4, 5]
+  idca_scales: [1, 3, 5]
+
+data:
+  # Point this at the LOL v1 root that contains `low/` and `high/`.
+  # For LOL v2 / MIT-Adobe 5K replace these paths.
+  train_root: datasets/LOLv1/our485
+  val_root:   datasets/LOLv1/eval15
+  patch_size: 256
+  batch_size: 8
+  num_workers: 4
+
+optim:
+  type: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-7
+  betas: [0.9, 0.999]
+
+train:
+  epochs: 600
+  loss: charbonnier          # or "charbonnier_ssim"
+  charbonnier_eps: 1.0e-3
+  ssim_alpha: 0.85           # only used when loss=charbonnier_ssim
+  grad_clip: 1.0             # set to null to disable
+  log_interval: 20           # iterations between console logs
+  val_interval: 1            # epochs between validation runs
+  save_best: psnr            # "psnr", "ssim", or "loss"
+  amp: true                  # mixed precision on CUDA
+  resume: null               # path to checkpoint, or null
+
+scheduler:
+  type: cosine               # "cosine" or "step" or "none"
+  min_lr: 1.0e-6
+  step_size: 200
+  step_gamma: 0.5
+
+test:
+  checkpoint: null           # if null, uses runs/<name>/best.pt
+  save_outputs: true
+  output_dir: results
