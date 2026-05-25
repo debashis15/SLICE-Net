@@ -95,7 +95,6 @@ Pretrained checkpoints and visual results are hosted on Google Drive:
 | Visual results (paired benchmarks) | [Google Drive](<INSERT_LINK_HERE>) |
 | Visual results (unpaired benchmarks) | [Google Drive](<INSERT_LINK_HERE>) |
 
-> Replace `<INSERT_LINK_HERE>` with the corresponding shareable Google Drive URL.
 
 To load a downloaded checkpoint:
 
@@ -113,7 +112,7 @@ net.eval()
 
 ## Citation
 
-> *To be updated upon acceptance at IEEE Sensors Letters.*
+> *To be updated upon acceptance.*
 
 ```bibtex
 @article{slicenet2026,
