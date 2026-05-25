@@ -89,10 +89,7 @@ Pretrained checkpoints and visual results are hosted on Google Drive:
 
 | Resource | Link |
 |---|---|
-| Pretrained weights (LOL v1) | [Google Drive](<INSERT_LINK_HERE>) |
-| Pretrained weights (LOL v2) | [Google Drive](<INSERT_LINK_HERE>) |
-| Pretrained weights (MIT-Adobe 5K) | [Google Drive](<INSERT_LINK_HERE>) |
-| Visual results (paired benchmarks) | [Google Drive](<INSERT_LINK_HERE>) |
+| Visual results (paired benchmarks) | [Google Drive](<[INSERT_LINK_HERE](https://drive.google.com/drive/folders/1GEb3XLWIY-R5-01jMPFcVzZtixtdyaj4?usp=sharing)>) |
 | Visual results (unpaired benchmarks) | [Google Drive](<INSERT_LINK_HERE>) |
 
 
